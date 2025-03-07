@@ -4,7 +4,7 @@ import InputLabel from "@/Components/InputLabel";
 import PrimaryButton from "@/Components/PrimaryButton";
 import TextInput from "@/Components/TextInput";
 import GuestLayout from "@/Layouts/GuestLayout";
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, useForm } from "@inertiajs/react";
 import { FormEventHandler } from "react";
 
 export default function Login({
@@ -19,11 +19,19 @@ export default function Login({
         password: "",
         remember: false,
     });
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
+        // Добавляем CSRF-токен в заголовки
         post(route("login"), {
             onFinish: () => reset("password"),
+            headers: {
+                "X-CSRF-TOKEN":
+                    document
+                        .querySelector('meta[name="csrf-token"]')
+                        ?.getAttribute("content") || "", // Значение по умолчанию
+            },
         });
     };
 
@@ -87,15 +95,6 @@ export default function Login({
                 </div>
 
                 <div className="mt-4 flex items-center justify-end">
-                    {canResetPassword && (
-                        <Link
-                            href={route("password.request")}
-                            className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                        >
-                            Forgot your password?
-                        </Link>
-                    )}
-
                     <PrimaryButton className="ms-4" disabled={processing}>
                         Log in
                     </PrimaryButton>

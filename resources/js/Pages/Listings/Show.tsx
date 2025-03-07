@@ -9,10 +9,10 @@ import {
     CarouselPrevious,
     type CarouselApi,
 } from "@/components/ui/carousel";
+import { ChevronsRightLeft } from "lucide-react";
 
 const Show = () => {
     const { ad } = usePage<{ ad: { data: Ad } }>().props;
-
     if (!ad || !ad.data) {
         return (
             <Authenticated
@@ -118,7 +118,9 @@ const Show = () => {
                         </li>
                         <li>
                             <strong>Город:</strong>{" "}
-                            {adData.user.city || "Не указан"}
+                            {adData.city?.region?.name +
+                                ", " +
+                                adData.city?.name || "Не указан"}
                         </li>
                         <li>
                             <strong>Телефон:</strong>{" "}

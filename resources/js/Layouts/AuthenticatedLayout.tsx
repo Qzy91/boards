@@ -9,14 +9,22 @@ import {
 import { Link, usePage } from "@inertiajs/react";
 import { Button } from "@/Components/ui/button";
 
+interface PageProps<T = {}> {
+    auth: {
+        user?: {
+            id: number;
+            name: string;
+            email: string;
+        };
+    };
+    [key: string]: any;
+}
+
 export default function Authenticated({
     header,
     children,
 }: React.PropsWithChildren<{ header?: React.ReactNode }>) {
-    const user = usePage().props.auth.user;
-
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    const { auth } = usePage<PageProps<{ auth: { user?: User } }>>().props;
 
     return (
         <div className="min-h-screen mb-4 bg-gray-100">
@@ -27,54 +35,84 @@ export default function Authenticated({
                         {/* Логотип или название */}
                         <div className="flex items-center">
                             <h1 className="text-lg font-semibold text-gray-800">
-                                <Link href={route("listings.index")}>
-                                    Boards
-                                </Link>
+                                <Link href={route("home")}>Boards</Link>
                             </h1>
                         </div>
 
                         <div className="hidden sm:flex sm:items-center">
-                            <Button asChild variant="default">
-                                <Link href={route("listings.create")}>
-                                    Create Ad
-                                </Link>
-                            </Button>
-                            <div className="relative ms-3">
-                                <Menubar>
-                                    <MenubarMenu>
-                                        <MenubarTrigger>
-                                            {user.name}
-                                        </MenubarTrigger>
-                                        <MenubarContent>
-                                            <MenubarItem>
-                                                <Link
-                                                    href={route("profile.edit")}
-                                                >
-                                                    Profile
-                                                </Link>
-                                            </MenubarItem>
-                                            <MenubarItem>
-                                                <Link
-                                                    href={route(
-                                                        "categories.index"
-                                                    )}
-                                                >
-                                                    Categories
-                                                </Link>
-                                            </MenubarItem>
-                                            <MenubarItem>
-                                                <Link
-                                                    href={route("logout")}
-                                                    method="post"
-                                                    as="button"
-                                                >
-                                                    Log Out
-                                                </Link>
-                                            </MenubarItem>
-                                        </MenubarContent>
-                                    </MenubarMenu>
-                                </Menubar>
-                            </div>
+                            {auth.user ? (
+                                <>
+                                    <Button
+                                        asChild
+                                        variant="default"
+                                        className="mx-3"
+                                    >
+                                        <Link href={route("listings.create")}>
+                                            Create Ad
+                                        </Link>
+                                    </Button>
+                                    <Menubar>
+                                        <MenubarMenu>
+                                            <MenubarTrigger>
+                                                {auth.user.name}
+                                            </MenubarTrigger>
+                                            <MenubarContent>
+                                                <MenubarItem>
+                                                    <Link
+                                                        href={route(
+                                                            "profile.edit"
+                                                        )}
+                                                    >
+                                                        Profile
+                                                    </Link>
+                                                </MenubarItem>
+                                                <MenubarItem>
+                                                    <Link
+                                                        href={route(
+                                                            "categories.index"
+                                                        )}
+                                                    >
+                                                        Categories
+                                                    </Link>
+                                                </MenubarItem>
+                                                <MenubarItem>
+                                                    <Link
+                                                        href={route(
+                                                            "listings.my"
+                                                        )}
+                                                    >
+                                                        My Ads
+                                                    </Link>
+                                                </MenubarItem>
+                                                <MenubarItem>
+                                                    <Link
+                                                        href={route("logout")}
+                                                        method="post"
+                                                        as="button"
+                                                    >
+                                                        Log Out
+                                                    </Link>
+                                                </MenubarItem>
+                                            </MenubarContent>
+                                        </MenubarMenu>
+                                    </Menubar>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        href={route("login")}
+                                        className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80"
+                                    >
+                                        Log in
+                                    </Link>
+                                    <Link
+                                        href={route("register")}
+                                        className="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80"
+                                    >
+                                        Register
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

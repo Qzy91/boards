@@ -22,6 +22,8 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            // Подгружаем все регионы с их городами (Region -> hasMany -> City)
+            'regions' => \App\Models\Region::with('cities')->get(),
         ]);
     }
 
@@ -29,31 +31,33 @@ class ProfileController extends Controller
      * Update the user's profile information.
      */
     public function update(Request $request): RedirectResponse
-{
-    $user = $request->user();
+    {
+        $user = $request->user();
 
-    $validated = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-        'email' => [
-            'required',
-            'email',
-            'max:255',
-            Rule::unique('users')->ignore($user->id),
-        ],
-        'city' => ['nullable', 'string', 'max:255'],
-        'phone' => ['nullable', 'string', 'max:20'],
-    ]);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id),
+            ],
+            'city_id' => ['nullable', 'integer', 'exists:cities,id'],
+            'phone' => ['nullable', 'string', 'max:20'],
+        ]);
 
-    if ($validated['email'] !== $user->email &&
-        $user instanceof MustVerifyEmail) {
-        $this->updateVerifiedUser($user, $validated);
-    } else {
-        $user->fill($validated);
-        $user->save();
+        // Если юзер должен подтверждать почту при смене email
+        if ($validated['email'] !== $user->email &&
+            $user instanceof MustVerifyEmail) {
+            $this->updateVerifiedUser($user, $validated);
+        } else {
+            $user->fill($validated);
+            $user->save();
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    return Redirect::route('profile.edit')->with('status', 'profile-updated');
-}
 
 protected function updateVerifiedUser($user, array $validated): void
 {

@@ -7,8 +7,9 @@ interface User {
     id: number;
     name: string;
     email: string;
-    city: string;
-    phone: string;
+    city_id: string | null;
+    phone: string | null;
+    email_verified_at?: string | null;
 }
 
 interface Ad {
@@ -17,6 +18,7 @@ interface Ad {
     description: string;
     category: string | null;
     price: number;
+    city: CityAd;
     photos: Photo[];
     user: User;
 }
@@ -47,6 +49,8 @@ interface Filters {
     filters: {
         name?: string;
         category_id?: number;
+        region_id: number;
+        city_id: number;
     };
     sort: {
         field: string;
@@ -66,8 +70,10 @@ interface CreateAdFormData {
     name: string;
     description: string;
     category: string;
-    photos: FileList | null;
     price: string;
+    city_id: string;
+    photos: File[];
+    [key: string]: string | File[];
 }
 
 interface CategoryImg {
@@ -84,4 +90,32 @@ interface ICategory {
 interface ICategoryImg {
     id: number;
     path: string;
+}
+
+interface City {
+    id: number;
+    name: string;
+    region_id: number;
+    type: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+interface Region {
+    id: number;
+    name: string;
+    created_at?: string;
+    updated_at?: string;
+    cities: City[];
+}
+
+interface CityAd {
+    id: number;
+    name: string;
+    region: RegionAd;
+}
+
+interface RegionAd {
+    id: number;
+    name: string;
 }

@@ -20,7 +20,16 @@ class AdResource extends JsonResource
         'name' => $this->name,
         'description' => $this->description,
         'category' => $this->category->name ?? null,
+        'category_id' => $this->category->id ?? null,
         'price' => $this->price,
+        'city' => $this->city ? [
+            'id' => $this->city->id,
+            'name' => $this->city->name,
+            'region' => $this->city->region ? [
+                'id'   => $this->city->region->id,
+                'name' => $this->city->region->name,
+            ] : null,
+        ] : null,
         'photos' => $this->photos->map(fn ($photo) => [
             'id' => $photo->id,
             'path' => $photo->path,
@@ -29,8 +38,8 @@ class AdResource extends JsonResource
             'id' => $this->user->id,
             'name' => $this->user->name,
             'email' => $this->user->email,
-            'city' => $this->user->city ?? 'Не указано',
-            'phone' => $this->user->phone ?? 'Не указано',
+            'city_id' =>$this->user->city_id,
+            'phone' => $this->user->phone ?? 'Не вказано',
         ],
     ];
 }

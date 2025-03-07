@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Ad extends Model
 {
 
-    protected $fillable = ['name', 'description', 'category_id', 'user_id', 'price'];
+    protected $fillable = ['name', 'description', 'category_id', 'user_id', 'price', 'activation_date', 'city_id',];
 
     public function user()
 {
@@ -22,6 +22,11 @@ public function photos()
 public function category()
 {
     return $this->belongsTo(Category::class);
+}
+
+public function city()
+{
+    return $this->belongsTo(City::class);
 }
 
 }

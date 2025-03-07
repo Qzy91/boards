@@ -17,7 +17,6 @@ import {
 } from "@/Components/ui/table";
 import { Input } from "@/Components/ui/input";
 import { useForm } from "@inertiajs/react";
-import { Ad } from "@/types";
 import {
     Pagination,
     PaginationContent,

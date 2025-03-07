@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { router, usePage } from "@inertiajs/react";
 import {
     Table,
@@ -19,46 +19,68 @@ import {
 } from "@/Components/ui/pagination";
 import Authenticated from "@/Layouts/AuthenticatedLayout";
 import CategoryFilter from "@/Components/CategoryFilter";
+import { Button } from "@/Components/ui/button";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/Components/ui/select";
 
 const Index = () => {
-    const { ads, filters, categories } = usePage<{
+    const { ads, filters, categories, regions } = usePage<{
         ads: AdsResponse;
         filters: Filters;
         categories: ICategory[];
+        regions: Region[];
     }>().props;
-
     const [searchTerm, setSearchTerm] = useState(filters.filters?.name || "");
+    //category
     const [selectedCategory, setSelectedCategory] = useState<number | null>(
         filters.filters?.category_id || null
     );
+    //sort
     const [sortField, setSortField] = useState(
         filters.sort?.field || "created_at"
     );
     const [sortDirection, setSortDirection] = useState(
         filters.sort?.direction || "desc"
     );
-    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(
-        null
+    //filters
+    const [regionId, setRegionId] = useState<number | null>(
+        filters.filters?.region_id ? Number(filters.filters.region_id) : null
     );
+    const [cityId, setCityId] = useState<number | null>(
+        filters.filters?.city_id ? Number(filters.filters.city_id) : null
+    );
+
+    const filteredCities = useMemo(() => {
+        if (!regionId) return [];
+        const reg = regions.find((r) => r.id === regionId);
+        return reg ? reg.cities : [];
+    }, [regionId, regions]);
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchTerm(value);
+    };
 
-        if (searchTimeout) clearTimeout(searchTimeout);
-
-        setSearchTimeout(
-            setTimeout(() => {
-                router.get(
-                    route("listings.index"),
-                    {
-                        ...filters,
-                        filters: { ...filters.filters, name: value },
-                        page: 1,
-                    },
-                    { replace: true, preserveState: true }
-                );
-            }, 500)
+    const handleSearch = () => {
+        console.log(searchTerm);
+        router.get(
+            route("listings.index"),
+            {
+                ...filters,
+                filters: {
+                    ...filters.filters,
+                    name: searchTerm,
+                    region_id: regionId ?? undefined,
+                    city_id: cityId ?? undefined,
+                },
+                page: 1,
+            },
+            { replace: true, preserveState: true }
         );
     };
 
@@ -102,12 +124,86 @@ const Index = () => {
     };
 
     const handleRowClick = (adId: number) => {
-        router.get(route("listings.show", adId)); // Переход на страницу объявления
+        router.get(route("listings.show", adId));
+    };
+
+    const handleRegionChange = (value: string) => {
+        if (value === "all") {
+            setRegionId(null);
+            setCityId(null); // сбрасываем город
+        } else {
+            setRegionId(Number(value));
+            setCityId(null);
+        }
+    };
+
+    const handleCityChange = (value: string) => {
+        if (value === "all") {
+            setCityId(null);
+        } else {
+            setCityId(Number(value));
+        }
     };
 
     return (
         <Authenticated
-            header={<h1 className="text-xl font-bold">Объявления</h1>}
+            header={
+                <div className="flex w-100  gap-2 items-center justify-center">
+                    <div>
+                        <Input
+                            placeholder="Що хочете знайти?"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            className="w-80  bg-white"
+                        />
+                    </div>
+
+                    <Select
+                        value={regionId ? regionId.toString() : ""}
+                        onValueChange={handleRegionChange}
+                    >
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Все регионы" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Все регионы</SelectItem>
+                            {regions.map((reg) => (
+                                <SelectItem key={reg.id} value={String(reg.id)}>
+                                    {reg.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select
+                        value={cityId ? cityId.toString() : ""}
+                        onValueChange={handleCityChange}
+                        disabled={!regionId}
+                    >
+                        <SelectTrigger className="w-48">
+                            <SelectValue placeholder="Все города" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Все города</SelectItem>
+                            {filteredCities.map((city) => (
+                                <SelectItem
+                                    key={city.id}
+                                    value={String(city.id)}
+                                >
+                                    {city.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <Button
+                        variant="default"
+                        className=""
+                        onClick={() => handleSearch()}
+                    >
+                        Пошук
+                    </Button>
+                </div>
+            }
         >
             {/* Компонент фильтрации по категориям */}
             <CategoryFilter
@@ -115,16 +211,6 @@ const Index = () => {
                 selectedCategory={selectedCategory} // Передаём выбранную категорию
                 onCategorySelect={handleCategorySelect}
             />
-
-            {/* Фильтр */}
-            <div className="flex items-center my-8 mx-28">
-                <Input
-                    placeholder="Фильтр по названию..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="max-w-sm bg-white"
-                />
-            </div>
 
             {/* Таблица */}
             <div className="mx-28">
